@@ -54,8 +54,8 @@ public class User implements Runnable{
 		System.out.println("客户端： "+ client +" End");
 	}
 	
-	byte[] buffer = new byte[2048];
-	int readOffset = 0;
+	private byte[] buffer = new byte[2048];
+	private int readOffset = 0;
 	//信息总长度（可能不止一条信息）
 	int messageLength = 0;
 	public void ReadMessage() throws UnsupportedEncodingException {
@@ -97,8 +97,15 @@ public class User implements Runnable{
 		}catch(Exception e) { }
 	}
 	
-	byte[] buffer2 = new byte[2048];
-	int messageLength2 = 0;
+	public void SendMessage(String message,String message2,int Type) {
+		try {
+			BuildMessage(message,message2,Type);
+			out.write(buffer,0,messageLength);
+		}catch(Exception e) { }
+	}
+	
+	private byte[] buffer2 = new byte[2048];
+	private int messageLength2 = 0;
 	//type什么类型的消息，0是命令行输入  可以外部调用
 	public int BuildMessage(String s,int type) {
 		try {
@@ -169,6 +176,7 @@ public class User implements Runnable{
 		b[3] = (byte) ((i >> 24) & 0xff); 
 		return b;
 	}
+	
 	//内部调用
 	public void EnterRoom(String roomName) {
 		this.room = server.UserEnterRoom(this, roomName);

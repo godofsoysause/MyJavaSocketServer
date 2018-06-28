@@ -18,6 +18,10 @@ public class Room {
 		roomUser.remove(user);
 	}
 	
+	public boolean ContainUser(String userName) {
+		return false;
+	}
+	
 	public String getRoomName() {
 		return roomName;
 	}

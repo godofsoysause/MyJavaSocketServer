@@ -42,7 +42,11 @@ public class SocketServer implements Runnable{
 	      }
 		System.out.println("服务器：GG");
 	}
-	public Room UserEnterRoom(User user,String roomName) {
+
+	public void UserLogin(String userName,String password) {
+		
+	}
+	/*public Room UserEnterRoom(User user,String roomName) {
 		for(int i=0;i<Rooms.size();i++) {
 			Room t_room = Rooms.get(i);
 			if(t_room.getRoomName().equals(roomName)) {
@@ -80,5 +84,5 @@ public class SocketServer implements Runnable{
 	//getter and setter
 	public ArrayList<User> getNoRoomUser() {
 		return noRoomUser;
-	}
+	}*/
 }
