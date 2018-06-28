@@ -57,6 +57,26 @@ public class SocketServer implements Runnable{
 		noRoomUser.add(user);
 	}
 	
+	public void BuildRoom(String roomName,User user) {
+		if(Rooms.size()!=0) {
+			boolean repeat = false;
+			{
+				for(int i=0;i<Rooms.size();i++) {
+					Room temp_room = Rooms.get(i);
+					if(temp_room.getRoomName().equals(roomName)) {
+						repeat = true;
+						roomName += "l";
+						break;
+					}
+				}
+			}while(repeat);
+		}
+		Room t_room = new Room(user,roomName);
+		t_room.AddUser(user);
+		noRoomUser.remove(user);
+		Rooms.add(t_room);
+	}
+	
 	//getter and setter
 	public ArrayList<User> getNoRoomUser() {
 		return noRoomUser;
