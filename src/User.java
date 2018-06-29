@@ -9,6 +9,7 @@ public class User implements Runnable{
 	private Thread t;
 	private String threadName;
 	private Socket client;
+
 	private SocketServer server;
 	DataOutputStream out;
 	private Room room;
@@ -58,7 +59,8 @@ public class User implements Runnable{
 	private int readOffset = 0;
 	//信息总长度（可能不止一条信息）
 	int messageLength = 0;
-	public void ReadMessage() throws UnsupportedEncodingException {
+	public void ReadMessage(){
+		try {
 		readOffset = 0;
 		byte[] b1_length = new byte[4];
 		byte[] type_byte = new byte[4]; 
@@ -85,22 +87,126 @@ public class User implements Runnable{
 					System.out.println(s);
 					readOffset += length-4;
 					break;
+				case 1:
+					UserLogin();
+					break;
+				case 2:
+					BuildRoom();
+					break;
+				case 3:
+					UserJoinRoom();
+					break;
+				case 4:
+					UserSendMessageInRoom(length);
+					break;
+				case 5:
+					UserLeaveRoom(length);
+					break;
+				case 7:
+					FindAllRooms(length);
+					break;
+				}
+				messageLength -= length+4;
 			}
-			messageLength -= length+4;
-		}
+		}catch (Exception e) {  }
 	}
 
+	private void UserLogin() throws UnsupportedEncodingException {
+		byte[] messageL = new byte[4];
+		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
+		int nameLength = TurnBytesToInt(messageL);
+		readOffset += 4;
+		byte[] namebytes = new byte[nameLength];
+		System.arraycopy(buffer,readOffset,namebytes,0,namebytes.length);
+		String userName = new String(namebytes,"UTF-8");
+		readOffset += nameLength;
+		
+		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
+		int passwordLength = TurnBytesToInt(messageL);
+		readOffset += 4;
+		byte[] passwordbytes = new byte[passwordLength];
+		System.arraycopy(buffer,readOffset,passwordbytes,0,passwordbytes.length);
+		String password = new String(passwordbytes,"UTF-8");
+		readOffset += passwordLength;
+		server.UserLogin(userName, password, this);
+	}
+	
+	private void BuildRoom() throws UnsupportedEncodingException {
+		byte[] messageL1 = new byte[4];
+		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
+		int roomNameLength = TurnBytesToInt(messageL1);
+		readOffset += 4;
+		byte[] roomNamebytes = new byte[roomNameLength];
+		System.arraycopy(buffer,readOffset,roomNamebytes,0,roomNamebytes.length);
+		String roomName = new String(roomNamebytes,"UTF-8");
+		readOffset += roomNameLength;
+		
+		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
+		int roomPasswordLength = TurnBytesToInt(messageL1);
+		readOffset += 4;
+		byte[] roomPasswordbytes = new byte[roomPasswordLength];
+		System.arraycopy(buffer,readOffset,roomPasswordbytes,0,roomPasswordbytes.length);
+		String roomPassword = new String(roomPasswordbytes,"UTF-8");
+		readOffset += roomPasswordLength;
+		server.BuildRoom(roomName, roomPassword, this);
+	}
+	
+	private void UserJoinRoom() throws UnsupportedEncodingException {
+		byte[] messageL1 = new byte[4];
+		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
+		int roomNameLength = TurnBytesToInt(messageL1);
+		readOffset += 4;
+		byte[] roomNamebytes = new byte[roomNameLength];
+		System.arraycopy(buffer,readOffset,roomNamebytes,0,roomNamebytes.length);
+		String roomName = new String(roomNamebytes,"UTF-8");
+		readOffset += roomNameLength;
+		
+		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
+		int roomPasswordLength = TurnBytesToInt(messageL1);
+		readOffset += 4;
+		byte[] roomPasswordbytes = new byte[roomPasswordLength];
+		System.arraycopy(buffer,readOffset,roomPasswordbytes,0,roomPasswordbytes.length);
+		String roomPassword = new String(roomPasswordbytes,"UTF-8");
+		readOffset += roomPasswordLength;
+		server.UserJoinRoom(roomName, roomPassword, this);
+	}
+	
+	private void UserSendMessageInRoom(int length) throws UnsupportedEncodingException {
+		byte[] message = new byte[length-4];
+		System.arraycopy(buffer,readOffset,message,0,message.length);
+		String s = new String(message,"UTF-8");
+		readOffset += length-4;
+		server.UserSendMessageInRoom(s,this);
+	}
+	
+	private void UserLeaveRoom(int length) throws UnsupportedEncodingException {
+		//byte[] message = new byte[length-4];
+		//System.arraycopy(buffer,readOffset,message,0,message.length);
+		//String s = new String(message,"UTF-8");
+		readOffset += length-4;
+		server.UserLeaveRoom(this);
+	}
+	
+	private void FindAllRooms(int length) throws UnsupportedEncodingException {
+		//byte[] message = new byte[length-4];
+		//System.arraycopy(buffer,readOffset,message,0,message.length);
+		//String s = new String(message,"UTF-8");
+		readOffset += length-4;
+		server.FindAllRooms(this);
+	}
+	
+	
 	public void SendMessage(String message,int Type) {
 		try {
 			BuildMessage(message,Type);
-			out.write(buffer,0,messageLength);
+			out.write(buffer2,0,messageLength);
 		}catch(Exception e) { }
 	}
 	
 	public void SendMessage(String message,String message2,int Type) {
 		try {
 			BuildMessage(message,message2,Type);
-			out.write(buffer,0,messageLength);
+			out.write(buffer2,0,messageLength);
 		}catch(Exception e) { }
 	}
 	
@@ -168,6 +274,7 @@ public class User implements Runnable{
 		}
 		return messageLength2;
 	}
+	
 	private byte[] TurnIntToBytes(int i) {
 		byte[] b = new byte[4]; 
 		b[0] = (byte) (i & 0xff); 
@@ -177,22 +284,29 @@ public class User implements Runnable{
 		return b;
 	}
 	
-	//内部调用
-	public void EnterRoom(String roomName) {
-		this.room = server.UserEnterRoom(this, roomName);
-	}
-	private void LeaveRoom() {
-		server.UserLeaveRoom(this);
-		if(room!=null) {
-			room.RemoveUser(this);
-			this.room = null;
-		}
+	private int TurnBytesToInt(byte[] b) {
+		int i = (int) ((b[0] & 0xff) | ((b[1] & 0xff) << 8) 
+				| ((b[2] & 0xff) << 16) | ((b[3] & 0xff) << 24));
+		return i;
 	}
 	
+	
+	public Room getRoom() {
+		return room;
+	}
+	public void setRoom(Room room) {
+		this.room = room;
+	}
 	public String getUserName() {
 		return userName;
 	}
 	public void setUserName(String userName) {
 		this.userName = userName;
+	}
+	public Socket getClient() {
+		return client;
+	}
+	public void setClient(Socket client) {
+		this.client = client;
 	}
 }
