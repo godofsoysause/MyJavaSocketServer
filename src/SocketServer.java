@@ -3,12 +3,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class SocketServer implements Runnable{
 	private Thread t;
 	private String threadName;
-	private ArrayList<User> noRoomUser =  (ArrayList<User>) Collections.synchronizedList(new ArrayList<User>());
-	private ArrayList<Room> Rooms =  (ArrayList<Room>) Collections.synchronizedList(new ArrayList<Room>());
+	private List<User> noRoomUser =  Collections.synchronizedList(new ArrayList<User>());
+	private List<Room> Rooms =   Collections.synchronizedList(new ArrayList<Room>());
 	
 	public SocketServer() {
 		this.threadName = "SocketServer";
@@ -99,6 +100,7 @@ public class SocketServer implements Runnable{
 		}
 		Room t_room = new Room(user,roomName,password);
 		t_room.AddUser(user);
+		user.setRoom(t_room);
 		noRoomUser.remove(user);
 		Rooms.add(t_room);
 		}
@@ -121,11 +123,13 @@ public class SocketServer implements Runnable{
 		SendTool.UserJoinRoomReturn(user, "true", temp_room.getAllUserName());
 	}
 	public void UserSendMessageInRoom(String message,User user) {
-		ArrayList<User> users = user.getRoom().getRoomUser();
+		List<User> users = user.getRoom().getRoomUser();
 		String userName = user.getUserName();
+		System.out.println("用户    "+user.getUserName()+"  发送的信息: "+message);
 		for(int i=0;i<users.size();i++) {
 			User t_User = users.get(i);
 			if(!t_User.getUserName().equals(userName)) {
+				System.out.println("发送到用户    "+t_User.getUserName()+"  发送的信息: "+message);
 				SendTool.UserSendMessageInRoomReturn(t_User, userName, message);
 			}
 		}
@@ -134,7 +138,7 @@ public class SocketServer implements Runnable{
 		noRoomUser.add(user);
 		Room t_Room = user.getRoom();
 		user.setRoom(null);
-		ArrayList<User> t_Users = t_Room.getRoomUser();
+		List<User> t_Users = t_Room.getRoomUser();
 		if(t_Users.size()<=1) {
 			t_Room.RemoveUser(user);
 			Rooms.remove(t_Room);
@@ -204,11 +208,11 @@ public class SocketServer implements Runnable{
 		return roomNames;
 	}
 	//getter and setter
-	public ArrayList<User> getNoRoomUser() {
+	public List<User> getNoRoomUser() {
 		return noRoomUser;
 	}
 	
-	public ArrayList<Room> getRooms() {
+	public List<Room> getRooms() {
 		return Rooms;
 	}
 }

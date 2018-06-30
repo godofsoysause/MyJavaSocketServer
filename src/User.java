@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 
 public class User implements Runnable{
 	private String userName = "";
@@ -49,7 +50,7 @@ public class User implements Runnable{
 	    	//System.out.println(e);
 		}
 		if(room!=null) {
-			ArrayList<User> t_Users = room.getRoomUser();
+			List<User> t_Users = room.getRoomUser();
 			if(t_Users.size()<=1) {
 				room.RemoveUser(this);
 				server.getRooms().remove(room);
@@ -184,14 +185,14 @@ public class User implements Runnable{
 	public void SendMessage(String message,int Type) {
 		try {
 			BuildMessage(message,Type);
-			out.write(buffer2,0,messageLength);
+			out.write(buffer2,0,messageLength2);
 		}catch(Exception e) { }
 	}
 	
 	public void SendMessage(String message,String message2,int Type) {
 		try {
 			BuildMessage(message,message2,Type);
-			out.write(buffer2,0,messageLength);
+			out.write(buffer2,0,messageLength2);
 		}catch(Exception e) { }
 	}
 	

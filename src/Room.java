@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class Room {
 	private String roomName;
@@ -7,7 +8,7 @@ public class Room {
 
 	//房主
 	private User roomMaster;
-	private ArrayList<User> roomUser =  (ArrayList<User>) Collections.synchronizedList(new ArrayList<User>());
+	private List<User> roomUser = Collections.synchronizedList(new ArrayList<User>());
 
 	public Room(User roomMaster,String roomName,String password) {
 		this.roomName = roomName;
@@ -56,7 +57,7 @@ public class Room {
 		this.roomPassword = roomPassword;
 	}
 
-	public ArrayList<User> getRoomUser() {
+	public List<User> getRoomUser() {
 		return roomUser;
 	}
 	public User getRoomMaster() {
