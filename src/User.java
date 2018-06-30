@@ -5,7 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
+///////////////////////////////////////////////////////////
 public class User implements Runnable{
 	private String userName = "";
 	private Thread t;
