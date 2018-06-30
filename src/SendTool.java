@@ -3,7 +3,10 @@ public class SendTool {
 		if (error==null)error="";
 		user.SendMessage(succeedOrNot, error, 1);
 	}
-	
+	public static void RegisterReturn(User user,String succeedOrNot,String error) {
+		if (error==null)error="";
+		user.SendMessage(succeedOrNot, error, 8);
+	}
 	public static void BuildRoomReturn(User user,String succeedOrNot,String roomName) {
 		user.SendMessage(succeedOrNot, roomName, 2);
 	}

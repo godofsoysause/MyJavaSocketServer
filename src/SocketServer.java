@@ -2,12 +2,13 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class SocketServer implements Runnable{
 	private Thread t;
 	private String threadName;
-	private ArrayList<User> noRoomUser =  new ArrayList<User>();
-	private ArrayList<Room> Rooms =  new ArrayList<Room>();
+	private ArrayList<User> noRoomUser =  (ArrayList<User>) Collections.synchronizedList(new ArrayList<User>());
+	private ArrayList<Room> Rooms =  (ArrayList<Room>) Collections.synchronizedList(new ArrayList<Room>());
 	
 	public SocketServer() {
 		this.threadName = "SocketServer";
@@ -44,6 +45,11 @@ public class SocketServer implements Runnable{
 	}
 
 	public void UserLogin(String userName,String password,User user) {
+		if(password.equals("")) {
+			SendTool.LoginReturn(user, "false", "Password is null!");
+			return;
+		}
+		synchronized(Rooms) {
 		if(Rooms.size()!=0) {
 			for(int i=0;i<Rooms.size();i++) {
 				Room temp_room = Rooms.get(i);
@@ -52,7 +58,8 @@ public class SocketServer implements Runnable{
 					return;
 				}
 			}
-		}
+		}}
+		synchronized(noRoomUser) {
 		if(noRoomUser.size()!=0) {
 			for(int i=0;i<noRoomUser.size();i++) {
 				User u = noRoomUser.get(i);
@@ -61,11 +68,21 @@ public class SocketServer implements Runnable{
 					return;
 				}
 			}
-		}
+		}}
 		user.setUserName(userName);
 		SendTool.LoginReturn(user, "true", "");
 	}
+	
+	public void UserRegister(String userName,String password,User user) {
+		if(password.equals("")) {
+			SendTool.LoginReturn(user, "false", "Password is null!");
+			return;
+		}
+		SendTool.RegisterReturn(user, "true", "");
+	}
+	
 	public void BuildRoom(String roomName,String password,User user) {
+		synchronized(Rooms) {
 		if(Rooms.size()!=0) {
 			boolean repeat = false;
 			{
@@ -84,6 +101,7 @@ public class SocketServer implements Runnable{
 		t_room.AddUser(user);
 		noRoomUser.remove(user);
 		Rooms.add(t_room);
+		}
 		SendTool.BuildRoomReturn(user, "true", roomName);
 	}
 	
@@ -188,5 +206,9 @@ public class SocketServer implements Runnable{
 	//getter and setter
 	public ArrayList<User> getNoRoomUser() {
 		return noRoomUser;
+	}
+	
+	public ArrayList<Room> getRooms() {
+		return Rooms;
 	}
 }

@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class User implements Runnable{
 	private String userName = "";
@@ -48,7 +49,17 @@ public class User implements Runnable{
 	    	//System.out.println(e);
 		}
 		if(room!=null) {
-			room.RemoveUser(this);
+			ArrayList<User> t_Users = room.getRoomUser();
+			if(t_Users.size()<=1) {
+				room.RemoveUser(this);
+				server.getRooms().remove(room);
+			}else {
+				room.RemoveUser(this);
+				if(this.getUserName().equals(room.getRoomMaster().getUserName())) {
+					t_Users = room.getRoomUser();
+					room.setRoomMaster(t_Users.get(0));
+				}
+			}
 		}else {
 			server.getNoRoomUser().remove(this);
 		}
@@ -115,80 +126,33 @@ public class User implements Runnable{
 	}
 
 	private void UserLogin() throws UnsupportedEncodingException {
-		byte[] messageL = new byte[4];
-		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
-		int nameLength = TurnBytesToInt(messageL);
-		readOffset += 4;
-		byte[] namebytes = new byte[nameLength];
-		System.arraycopy(buffer,readOffset,namebytes,0,namebytes.length);
-		String userName = new String(namebytes,"UTF-8");
-		readOffset += nameLength;
+		String userName = getStringFromBuffer();		
+
+		String password = getStringFromBuffer();
 		
-		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
-		int passwordLength = TurnBytesToInt(messageL);
-		readOffset += 4;
-		byte[] passwordbytes = new byte[passwordLength];
-		System.arraycopy(buffer,readOffset,passwordbytes,0,passwordbytes.length);
-		String password = new String(passwordbytes,"UTF-8");
-		readOffset += passwordLength;
 		server.UserLogin(userName, password, this);
 	}
 	private void UserRegister() throws UnsupportedEncodingException {
-		byte[] messageL = new byte[4];
-		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
-		int nameLength = TurnBytesToInt(messageL);
-		readOffset += 4;
-		byte[] namebytes = new byte[nameLength];
-		System.arraycopy(buffer,readOffset,namebytes,0,namebytes.length);
-		String userName = new String(namebytes,"UTF-8");
-		readOffset += nameLength;
+		String userName = getStringFromBuffer();
 		
-		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
-		int passwordLength = TurnBytesToInt(messageL);
-		readOffset += 4;
-		byte[] passwordbytes = new byte[passwordLength];
-		System.arraycopy(buffer,readOffset,passwordbytes,0,passwordbytes.length);
-		String password = new String(passwordbytes,"UTF-8");
-		readOffset += passwordLength;
+		String password = getStringFromBuffer();
+
 		server.UserRegister(userName, password, this);
 	}
 	private void BuildRoom() throws UnsupportedEncodingException {
-		byte[] messageL1 = new byte[4];
-		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
-		int roomNameLength = TurnBytesToInt(messageL1);
-		readOffset += 4;
-		byte[] roomNamebytes = new byte[roomNameLength];
-		System.arraycopy(buffer,readOffset,roomNamebytes,0,roomNamebytes.length);
-		String roomName = new String(roomNamebytes,"UTF-8");
-		readOffset += roomNameLength;
+		String roomName = getStringFromBuffer();
 		
-		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
-		int roomPasswordLength = TurnBytesToInt(messageL1);
-		readOffset += 4;
-		byte[] roomPasswordbytes = new byte[roomPasswordLength];
-		System.arraycopy(buffer,readOffset,roomPasswordbytes,0,roomPasswordbytes.length);
-		String roomPassword = new String(roomPasswordbytes,"UTF-8");
-		readOffset += roomPasswordLength;
+		String roomPassword = getStringFromBuffer();
+
 		server.BuildRoom(roomName, roomPassword, this);
 	}
 	
 	private void UserJoinRoom() throws UnsupportedEncodingException {
-		byte[] messageL1 = new byte[4];
-		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
-		int roomNameLength = TurnBytesToInt(messageL1);
-		readOffset += 4;
-		byte[] roomNamebytes = new byte[roomNameLength];
-		System.arraycopy(buffer,readOffset,roomNamebytes,0,roomNamebytes.length);
-		String roomName = new String(roomNamebytes,"UTF-8");
-		readOffset += roomNameLength;
+
+		String roomName = getStringFromBuffer();		
 		
-		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
-		int roomPasswordLength = TurnBytesToInt(messageL1);
-		readOffset += 4;
-		byte[] roomPasswordbytes = new byte[roomPasswordLength];
-		System.arraycopy(buffer,readOffset,roomPasswordbytes,0,roomPasswordbytes.length);
-		String roomPassword = new String(roomPasswordbytes,"UTF-8");
-		readOffset += roomPasswordLength;
+		String roomPassword = getStringFromBuffer();
+
 		server.UserJoinRoom(roomName, roomPassword, this);
 	}
 	

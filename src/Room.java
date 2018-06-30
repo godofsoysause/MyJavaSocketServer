@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Room {
 	private String roomName;
@@ -6,7 +7,7 @@ public class Room {
 
 	//房主
 	private User roomMaster;
-	private ArrayList<User> roomUser =  new ArrayList<User>();
+	private ArrayList<User> roomUser =  (ArrayList<User>) Collections.synchronizedList(new ArrayList<User>());
 
 	public Room(User roomMaster,String roomName,String password) {
 		this.roomName = roomName;
