@@ -105,6 +105,9 @@ public class User implements Runnable{
 				case 7:
 					FindAllRooms(length);
 					break;
+				case 8:
+					UserRegister();
+					break;
 				}
 				messageLength -= length+4;
 			}
@@ -130,7 +133,25 @@ public class User implements Runnable{
 		readOffset += passwordLength;
 		server.UserLogin(userName, password, this);
 	}
-	
+	private void UserRegister() throws UnsupportedEncodingException {
+		byte[] messageL = new byte[4];
+		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
+		int nameLength = TurnBytesToInt(messageL);
+		readOffset += 4;
+		byte[] namebytes = new byte[nameLength];
+		System.arraycopy(buffer,readOffset,namebytes,0,namebytes.length);
+		String userName = new String(namebytes,"UTF-8");
+		readOffset += nameLength;
+		
+		System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
+		int passwordLength = TurnBytesToInt(messageL);
+		readOffset += 4;
+		byte[] passwordbytes = new byte[passwordLength];
+		System.arraycopy(buffer,readOffset,passwordbytes,0,passwordbytes.length);
+		String password = new String(passwordbytes,"UTF-8");
+		readOffset += passwordLength;
+		server.UserRegister(userName, password, this);
+	}
 	private void BuildRoom() throws UnsupportedEncodingException {
 		byte[] messageL1 = new byte[4];
 		System.arraycopy(buffer,readOffset,messageL1,0,messageL1.length);
@@ -274,6 +295,19 @@ public class User implements Runnable{
 		}
 		return messageLength2;
 	}
+	
+		//只能用于有多个值信息
+		private String getStringFromBuffer() throws UnsupportedEncodingException {
+			byte[] messageL = new byte[4];
+			System.arraycopy(buffer,readOffset,messageL,0,messageL.length);
+			int byteL = TurnBytesToInt(messageL);
+			readOffset += 4;
+			byte[] messagebyte = new byte[byteL];
+			System.arraycopy(buffer,readOffset,messagebyte,0,messagebyte.length);
+			String stringMessage = new String(messagebyte,"UTF-8");
+			readOffset += byteL;
+			return stringMessage;
+		}
 	
 	private byte[] TurnIntToBytes(int i) {
 		byte[] b = new byte[4]; 
